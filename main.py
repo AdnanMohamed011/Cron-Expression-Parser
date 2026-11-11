@@ -102,24 +102,39 @@ def parse_field(field_str, min_val, max_val):
         return [int(field_str)]
     
             
+def expand_cron(cron_string):
+    if not isinstance(cron_string, str):
+        raise ValueError("Cron expression must be a string")
+    
+    cron = cron_string.split()
+    if len(cron) != 5:
+        raise ValueError("Invalid cron expression!")
+
+    cron_dict = {
+        "minute": parse_field(cron[0], 0, 59),
+        "hour": parse_field(cron[1], 0, 23),
+        "day_of_month": parse_field(cron[2], 1, 31),
+        "month": parse_field(cron[3], 1, 12),
+        "day_of_week": parse_field(cron[4], 0, 6)
+    }
+    return cron_dict
 
 
+cron_fields = ["* * *",          # Only 3 fields instead of 5
+    "60 * * * *",     # Minute out of range
+    "* 24 * * *",     # Hour out of range
+    "* * 32 * *",     # Day of month out of range
+    "* * * 13 *",     # Month out of range
+    "* * * * 8",      # Day of week out of range (if max is 7)
+    "a * * * *",      # Invalid character
+    "*/0 * * * *",    # Step value is zero
+    "10-5 * * * *",   # Reversed range
+    "* * * * * *"]     # 6 fields instead of 5     # Multiple slash operators
 
-# cron_fields = [("60", 0, 59),       # Above maximum
-#     ("-1", 0, 59),       # Negative number
-#     ("abc", 0, 59),      # Invalid characters
-#     ("1.5", 0, 59),      # Decimal number
-#     ("5-", 0, 59),       # Missing range endpoint
-#     ("10-5", 0, 59),     # Reversed range
-#     ("*/0", 0, 59),      # Zero step
-#     ("*/", 0, 59),       # Missing step value
-#     ("1,,3", 0, 59),     # Empty list item
-#     ("*/2/3", 0, 59)]     # Multiple slash operators
 
-
-# for expression, min_val, max_val in cron_fields:
-#     try:
-#         result = parse_field(expression, min_val, max_val)
-#         print(f"{expression}: UNEXPECTED RESULT: {result}")
-#     except ValueError as e:
-#         print(f"{expression}: Correctly rejected: {e}")
+for expression in cron_fields:
+    try:
+        result = expand_cron(expression)
+        print(f"{expression}: UNEXPECTED RESULT: {result}")
+    except ValueError as e:
+        print(f"{expression}: Correctly rejected: {e}")
