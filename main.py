@@ -1,3 +1,5 @@
+import argparse
+
 def parse_field(field_str, min_val, max_val):
 
     if "/" in field_str:
@@ -126,20 +128,13 @@ def format_output(expanded):
     for cron, parse in expanded.items():
         print(f"{cron:<14}| {parse}")
 
-cron_expression = [
-    "0 9 * * *",
-    "30 18 * * *",
-    "*/5 * * * *",
-    "0 */2 * * *",
-    "0 8 * * 1-5",
-    "0 0 1 * *",
-    "15 10 1 6 *",
-    "0 12 * * 0",
-    "0,30 8-18 * * 1-5",
-    "5-25/5 * * * *"
-    ]
 
-for cron in cron_expression:
-    expand = expand_cron(cron)
-    format_output(expand)
-    print("="*40)
+if __name__ == "__main__":
+    parser = argparse.ArgumentParser()
+
+    parser.add_argument("cron")
+
+    args = parser.parse_args()
+
+    cron_expression = expand_cron(args.cron)
+    format_output(cron_expression)
