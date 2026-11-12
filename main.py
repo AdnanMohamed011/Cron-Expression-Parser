@@ -9,7 +9,9 @@ def parse_field(field_str, min_val, max_val):
             raise ValueError("Both start and step value are required!")
 
         try:
-            if sliced_str[0] != "*":
+            if sliced_str[0] == "*" or "-" in sliced_str[0]:
+                pass
+            else:
                 int(sliced_str[0])
                 int(sliced_str[1])
         except ValueError:
@@ -120,21 +122,24 @@ def expand_cron(cron_string):
     return cron_dict
 
 
-cron_fields = ["* * *",          # Only 3 fields instead of 5
-    "60 * * * *",     # Minute out of range
-    "* 24 * * *",     # Hour out of range
-    "* * 32 * *",     # Day of month out of range
-    "* * * 13 *",     # Month out of range
-    "* * * * 8",      # Day of week out of range (if max is 7)
-    "a * * * *",      # Invalid character
-    "*/0 * * * *",    # Step value is zero
-    "10-5 * * * *",   # Reversed range
-    "* * * * * *"]     # 6 fields instead of 5     # Multiple slash operators
+def format_output(expanded):
+    for cron, parse in expanded.items():
+        print(f"{cron:<14}| {parse}")
 
+cron_expression = [
+    "0 9 * * *",
+    "30 18 * * *",
+    "*/5 * * * *",
+    "0 */2 * * *",
+    "0 8 * * 1-5",
+    "0 0 1 * *",
+    "15 10 1 6 *",
+    "0 12 * * 0",
+    "0,30 8-18 * * 1-5",
+    "5-25/5 * * * *"
+    ]
 
-for expression in cron_fields:
-    try:
-        result = expand_cron(expression)
-        print(f"{expression}: UNEXPECTED RESULT: {result}")
-    except ValueError as e:
-        print(f"{expression}: Correctly rejected: {e}")
+for cron in cron_expression:
+    expand = expand_cron(cron)
+    format_output(expand)
+    print("="*40)
