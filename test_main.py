@@ -11,7 +11,8 @@ from main import parse_field, expand_cron
     ("2/10", 0, 59, [2, 12, 22, 32, 42, 52]),
     ("5-15/2", 0, 59, [5, 7, 9, 11, 13, 15]),
     ("10-12", 0, 59, [10, 11, 12]),
-    ("0,15,30,45", 0, 59, [0, 15, 30, 45])
+    ("0,15,30,45", 0, 59, [0, 15, 30, 45]),
+    ("5/5", 0, 59, [5, 10, 15, 20, 25, 30, 35, 40, 45, 50, 55]),
 ])
 def test_parse_field(field_str, min_val, max_val, expected):
     assert parse_field(field_str, min_val, max_val) == expected
@@ -27,11 +28,14 @@ def test_parse_field(field_str, min_val, max_val, expected):
     ("*/0", 0, 59),
     ("*/", 0, 59),
     ("1,,3", 0, 59),
-    ("*/2/3", 0, 59)
+    ("*/2/3", 0, 59),
+    ("60/5", 0, 59),
+    ("10-5/2", 0, 59),
+    ("60-70/5", 0, 59)
 ])
 def test_invalid_parse_field(field_str, min_val, max_val):
     with pytest.raises(ValueError):
-        assert parse_field(field_str, min_val, max_val)
+        parse_field(field_str, min_val, max_val)
 
 
 @pytest.mark.parametrize("cron_string, expected", [
@@ -140,7 +144,7 @@ def test_expand_cron(cron_string, expected):
     assert expand_cron(cron_string) == expected
 
 
-@pytest.mark.parametrize("cron_strngs", [
+@pytest.mark.parametrize("cron_strings", [
     "* * *",          # Only 3 fields
     "60 * * * *",     # Minute out of range
     "* 24 * * *",     # Hour out of range
@@ -152,6 +156,6 @@ def test_expand_cron(cron_string, expected):
     "10-5 * * * *",   # Reversed range
     "* * * * * *",    # 6 fields instead of 5
 ])
-def test_invalid_expand_cron(cron_strngs):
+def test_invalid_expand_cron(cron_strings):
     with pytest.raises(ValueError):
-        assert expand_cron(cron_strngs)
+        expand_cron(cron_strings)

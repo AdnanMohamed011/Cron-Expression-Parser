@@ -1,6 +1,8 @@
 import argparse
 
 def parse_field(field_str, min_val, max_val):
+    if not isinstance(field_str, str):
+        raise ValueError("Value must be of type str!")
 
     if "/" in field_str:
         sliced_str = field_str.split("/")
@@ -18,12 +20,20 @@ def parse_field(field_str, min_val, max_val):
                 int(sliced_str[1])
         except ValueError:
             raise ValueError("Value cannot be converted to an integer!")
+
+        if "-" not in sliced_str[0] and "*" != sliced_str[0]:
+            if int(sliced_str[0]) > max_val or int(sliced_str[0]) < min_val:
+                raise ValueError("Value not in range! ")
         
         if int(sliced_str[1]) <= 0:
-            raise ValueError("Step salue cannot be lesser or equal to 0 !")
+            raise ValueError("Step value must be greater than zero!")
+
+        if int(sliced_str[1]) > max_val:
+            raise ValueError("Step value cannot be greater than maximum value!")
 
         if sliced_str[0] == "" or sliced_str[1] == "":
             raise ValueError("Invalid value!")
+        
         if "-" in sliced_str[0]:
             range_num = sliced_str[0].split("-")
             if len(range_num) != 2:
@@ -36,6 +46,16 @@ def parse_field(field_str, min_val, max_val):
             
             num1 = int(range_num[0])
             num2 = int(range_num[1])
+
+            if num1 < min_val or num1 > max_val:
+                raise ValueError("Value not in range!")
+
+            if num2 < min_val or num2 > max_val:
+                raise ValueError("Value not in range!")
+
+            if num1 > num2:
+                raise ValueError("Start range value cannot be greater than end range value!")
+            
             return list(range(num1, num2+1, int(sliced_str[1])))
 
         elif "*" == sliced_str[0]:
@@ -46,6 +66,7 @@ def parse_field(field_str, min_val, max_val):
         return list(range(num, max_val+1, step))
 
     elif "-" in field_str:
+        
         if "-" == field_str[0]:
             raise ValueError("Value cannot be negative!")
         
@@ -71,9 +92,8 @@ def parse_field(field_str, min_val, max_val):
         return list(range(num1, num2+1))
 
     elif "," in field_str:
+        
         nums = field_str.split(",")
-        if len(nums) < 1:
-            raise ValueError("Invalid value!")
         
         list_num = []
         for num in nums:
@@ -136,5 +156,8 @@ if __name__ == "__main__":
 
     args = parser.parse_args()
 
-    cron_expression = expand_cron(args.cron)
-    format_output(cron_expression)
+    try:
+        format_output(expand_cron(args.cron))
+    except ValueError as e:
+        parser.error(str(e))
+
